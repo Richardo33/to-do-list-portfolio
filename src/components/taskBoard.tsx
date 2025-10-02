@@ -37,7 +37,6 @@ export default function TaskBoard() {
 
       setUserId(userData.user.id);
 
-      // Fetch board
       const { data: boards, error: boardError } = await supabase
         .from("boards")
         .select("*")
@@ -57,7 +56,6 @@ export default function TaskBoard() {
       if (!bId) return;
       setBoardId(bId);
 
-      // Fetch lists
       const { data: existingLists } = await supabase
         .from("lists")
         .select("*")
@@ -79,7 +77,6 @@ export default function TaskBoard() {
         setLists(existingLists);
       }
 
-      // Fetch tasks
       const listIds = (existingLists || []).map((l) => l.id);
       const { data: taskData } = await supabase
         .from("tasks")
@@ -137,8 +134,13 @@ export default function TaskBoard() {
   };
 
   const handleDeleteTask = async (taskId: string) => {
-    await supabase.from("tasks").delete().eq("id", taskId);
-    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    console.log("Deleting task:", taskId); // debug id
+    const { error } = await supabase.from("tasks").delete().eq("id", taskId);
+    if (error) {
+      console.error("Delete failed:", error);
+    } else {
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    }
   };
 
   return (
@@ -154,7 +156,7 @@ export default function TaskBoard() {
         tasks={tasks}
         filter={filter}
         onTaskStatusChange={handleTaskStatusChange}
-        onDeleteTask={handleDeleteTask}
+        onDelete={handleDeleteTask}
       />
 
       <AddTaskModal

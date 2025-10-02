@@ -1,14 +1,13 @@
 "use client";
 
 import { Task } from "./taskBoard";
-import { X } from "lucide-react";
 
 interface TaskCardProps {
   task: Task;
-  onDelete: (taskId: string) => void;
+  onClick: (task: Task) => void;
 }
 
-export default function TaskCard({ task, onDelete }: TaskCardProps) {
+export default function TaskCard({ task, onClick }: TaskCardProps) {
   const categoryColors: Record<string, string> = {
     Work: "bg-[#117bd5] text-white",
     Personal: "bg-[#22c55e] text-white",
@@ -19,22 +18,17 @@ export default function TaskCard({ task, onDelete }: TaskCardProps) {
   const tagClass = categoryColors[task.category] || categoryColors["Other"];
 
   return (
-    <div className="relative bg-[rgba(255,255,255,0.05)] rounded-2xl p-4 shadow-md hover:shadow-lg transition-shadow cursor-pointer">
-      {/* Tombol hapus */}
-      <button
-        className="absolute top-2 right-2 text-white hover:text-red-500"
-        onClick={() => onDelete(task.id)}
-      >
-        <X size={16} />
-      </button>
-
+    <div
+      onClick={() => onClick(task)}
+      className="relative bg-[rgba(255,255,255,0.05)] rounded-2xl p-4 shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+    >
       <span
         className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-full mb-2 ${tagClass}`}
       >
         {task.category}
       </span>
       <h3 className="font-bold text-white text-lg mb-1">{task.title}</h3>
-      <p className="text-gray-200 text-sm">{task.description}</p>
+      <p className="text-gray-200 text-sm line-clamp-2">{task.description}</p>
     </div>
   );
 }

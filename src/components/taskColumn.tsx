@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Task } from "./taskBoard";
 import TaskCard from "./taskCard";
+import TaskDetailModal from "./detailList";
 import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -9,20 +11,21 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useDroppable } from "@dnd-kit/core";
 
 interface TaskColumnsProps {
   tasks: Task[];
   filter: string;
   onTaskStatusChange: (taskId: string, newStatus: Task["status"]) => void;
-  onDeleteTask: (taskId: string) => void;
+  onDelete: (taskId: string) => void;
 }
 
 interface SortableTaskProps {
   task: Task;
-  onDelete: (taskId: string) => void;
+  onClick: (task: Task) => void;
 }
 
-function SortableTask({ task, onDelete }: SortableTaskProps) {
+function SortableTask({ task, onClick }: SortableTaskProps) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: task.id });
 
@@ -32,8 +35,31 @@ function SortableTask({ task, onDelete }: SortableTaskProps) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <TaskCard task={task} onDelete={onDelete} />
+    <div ref={setNodeRef} style={style} {...attributes}>
+      <div className="cursor-grab" {...listeners}>
+        ⋮⋮
+      </div>
+
+      <TaskCard task={task} onClick={onClick} />
+    </div>
+  );
+}
+
+function DroppableColumn({
+  status,
+  children,
+}: {
+  status: Task["status"];
+  children: React.ReactNode;
+}) {
+  const { setNodeRef } = useDroppable({ id: status });
+  return (
+    <div
+      ref={setNodeRef}
+      className="flex flex-col gap-4 bg-[rgba(0,0,0,0.16)] p-4 rounded-2xl min-h-[150px]"
+    >
+      <h2 className="text-white font-bold mb-2">{status}</h2>
+      {children}
     </div>
   );
 }
@@ -42,9 +68,10 @@ export default function TaskColumns({
   tasks,
   filter,
   onTaskStatusChange,
-  onDeleteTask,
+  onDelete,
 }: TaskColumnsProps) {
   const statuses: Task["status"][] = ["To Do", "Doing", "Done"];
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const filteredTasks = (status: Task["status"]) =>
     tasks.filter(
@@ -56,19 +83,15 @@ export default function TaskColumns({
     if (!over || active.id === over.id) return;
 
     const draggedTask = tasks.find((t) => t.id === active.id);
-    const overTask = tasks.find((t) => t.id === over.id);
-
-    // Jika drop di column kosong, ambil status kolom dari over.id yang merupakan column id
     if (!draggedTask) return;
 
     let newStatus: Task["status"] | null = null;
+    const overTask = tasks.find((t) => t.id === over.id);
+
     if (overTask) {
       newStatus = overTask.status;
-    } else {
-      // over.id = status string
-      if (statuses.includes(over.id as Task["status"])) {
-        newStatus = over.id as Task["status"];
-      }
+    } else if (statuses.includes(over.id as Task["status"])) {
+      newStatus = over.id as Task["status"];
     }
 
     if (newStatus && draggedTask.status !== newStatus) {
@@ -77,36 +100,37 @@ export default function TaskColumns({
   };
 
   return (
-    <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {statuses.map((status) => {
-          const tasksForStatus = filteredTasks(status);
-          return (
-            <div
-              key={status}
-              id={status}
-              className="flex flex-col gap-4 bg-[rgba(0,0,0,0.16)] p-4 rounded-2xl"
-              style={{
-                minHeight: `${Math.max(tasksForStatus.length, 1) * 90}px`,
-              }}
-            >
-              <h2 className="text-white font-bold mb-2">{status}</h2>
-              <SortableContext
-                items={tasksForStatus.map((t) => t.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                {tasksForStatus.map((task) => (
-                  <SortableTask
-                    key={task.id}
-                    task={task}
-                    onDelete={onDeleteTask}
-                  />
-                ))}
-              </SortableContext>
-            </div>
-          );
-        })}
-      </div>
-    </DndContext>
+    <>
+      <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {statuses.map((status) => {
+            const tasksForStatus = filteredTasks(status);
+            return (
+              <DroppableColumn key={status} status={status}>
+                <SortableContext
+                  items={tasksForStatus.map((t) => t.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {tasksForStatus.map((task) => (
+                    <SortableTask
+                      key={task.id}
+                      task={task}
+                      onClick={(t) => setSelectedTask(t)}
+                    />
+                  ))}
+                </SortableContext>
+              </DroppableColumn>
+            );
+          })}
+        </div>
+      </DndContext>
+
+      <TaskDetailModal
+        task={selectedTask}
+        isOpen={!!selectedTask}
+        onClose={() => setSelectedTask(null)}
+        onDelete={onDelete}
+      />
+    </>
   );
 }
