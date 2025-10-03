@@ -17,6 +17,7 @@ export default function AddTaskModal({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Work");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,6 +25,26 @@ export default function AddTaskModal({
     setTitle("");
     setDescription("");
     setCategory("Work");
+  };
+
+  const handleGenerateDescription = async () => {
+    if (!title.trim()) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/generate-description", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
+      });
+      const data = await res.json();
+      if (data.description) {
+        setDescription(data.description);
+      }
+    } catch (err) {
+      console.error("Error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -38,22 +59,34 @@ export default function AddTaskModal({
             Add New Task
           </Dialog.Title>
           <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
-            <input
-              type="text"
-              placeholder="Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              className="bg-[rgba(31,65,102,0.5)] p-2 rounded text-white placeholder-white/60"
-            />
-            <input
-              type="text"
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                className="flex-1 bg-[rgba(31,65,102,0.5)] p-2 rounded text-white placeholder-white/60"
+              />
+              <button
+                type="button"
+                onClick={handleGenerateDescription}
+                disabled={loading || !title.trim()}
+                className="px-3 py-1 rounded bg-[#22c55e] hover:bg-[#16a34a] disabled:opacity-50"
+              >
+                {loading ? "..." : "✨"}
+              </button>
+            </div>
+
+            <textarea
+              rows={3}
               placeholder="Description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
-              className="bg-[rgba(31,65,102,0.5)] p-2 rounded text-white placeholder-white/60"
+              className="bg-[rgba(31,65,102,0.5)] p-2 rounded text-white placeholder-white/60 resize-none"
             />
+
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
@@ -63,6 +96,7 @@ export default function AddTaskModal({
               <option>Personal</option>
               <option>Urgent</option>
             </select>
+
             <div className="flex justify-end gap-2 mt-3">
               <button
                 type="button"

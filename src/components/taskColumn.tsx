@@ -12,6 +12,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useDroppable } from "@dnd-kit/core";
+import { MoreVertical } from "lucide-react";
 
 interface TaskColumnsProps {
   tasks: Task[];
@@ -35,11 +36,20 @@ function SortableTask({ task, onClick }: SortableTaskProps) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes}>
-      <div className="cursor-grab" {...listeners}>
-        ⋮⋮
+    <div ref={setNodeRef} style={style} className="relative">
+      {/* Drag handle: paku + tali */}
+      <div
+        className="flex items-center gap-2 mb-2 cursor-grab select-none"
+        {...listeners}
+        {...attributes}
+      >
+        {/* paku */}
+        <div className="w-3 h-3 rounded-full bg-gray-400 shadow-md"></div>
+        {/* tali */}
+        <div className="flex-1 h-0.5 bg-gray-400"></div>
       </div>
 
+      {/* Card utama, klik untuk buka detail */}
       <TaskCard task={task} onClick={onClick} />
     </div>
   );

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Menu, Transition } from "@headlessui/react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function Navbar() {
   const router = useRouter();
@@ -34,8 +35,16 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-0 left-0 z-40 flex items-center justify-between gap-4 bg-[#0E2A47] shadow-lg w-full h-[72px] px-10">
-      <div className="flex items-center gap-2 min-w-[128px]">
-        <span className="text-4 xl font-medium text-white">WGN</span>
+      <div
+        className="flex items-center gap-2 min-w-[128px]"
+        // onClick={() => router.push("/tasks")}
+      >
+        <Link
+          href="/tasks"
+          className="text-4 xl font-medium text-white cursor-pointer"
+        >
+          WGN
+        </Link>
       </div>
 
       <div className="flex items-center gap-4">
@@ -67,14 +76,15 @@ export default function Navbar() {
               <div className="py-1">
                 <Menu.Item>
                   {({ active }) => (
-                    <button
-                      onClick={() => router.push("/profile")}
+                    <Link
+                      href="/profile"
+                      // onClick={() => router.push("/profile")}
                       className={`${
                         active ? "bg-gray-100" : ""
                       } block w-full text-left px-4 py-2 text-sm`}
                     >
                       Profile
-                    </button>
+                    </Link>
                   )}
                 </Menu.Item>
                 <Menu.Item>
