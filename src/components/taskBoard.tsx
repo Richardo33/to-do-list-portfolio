@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -134,7 +135,7 @@ export default function TaskBoard() {
   };
 
   const handleDeleteTask = async (taskId: string) => {
-    console.log("Deleting task:", taskId); // debug id
+    // console.log("Deleting task:", taskId);
     const { error } = await supabase.from("tasks").delete().eq("id", taskId);
     if (error) {
       console.error("Delete failed:", error);

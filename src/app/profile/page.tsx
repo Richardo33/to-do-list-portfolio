@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Navbar from "@/components/navbar";
 import Image from "next/image";
+import BackgroundWrapper from "@/components/backgroundWrapper";
 
 interface Profile {
   full_name: string;
@@ -103,17 +104,20 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <div className="flex justify-center items-center min-h-screen text-white">
-        Loading...
-      </div>
+      <BackgroundWrapper>
+        <div className="flex justify-center items-center min-h-screen text-white">
+          Loading...
+        </div>
+      </BackgroundWrapper>
     );
   }
 
   return (
-    <div>
+    <BackgroundWrapper>
       <Navbar />
-      <div className="flex justify-center items-center min-h-screen bg-[#184A7E]">
+      <div className="flex justify-center items-center min-h-screen">
         <div className="bg-white shadow-xl rounded-2xl p-8 flex w-[600px] relative">
+          {/* Profile Info */}
           <div className="flex flex-col items-center w-1/3 border-r pr-6">
             <Image
               src={previewUrl || profile.avatar_url}
@@ -135,6 +139,7 @@ export default function ProfilePage() {
             </button>
           </div>
 
+          {/* Account Info */}
           <div className="w-2/3 pl-6 flex flex-col justify-center">
             <h3 className="text-xl font-semibold text-gray-800 mb-4">
               Account Information
@@ -151,6 +156,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Edit Modal */}
           {isEditing && (
             <div className="absolute inset-0 bg-black/60 flex justify-center items-center z-10">
               <div className="bg-white rounded-lg p-6 w-96">
@@ -202,6 +208,6 @@ export default function ProfilePage() {
           )}
         </div>
       </div>
-    </div>
+    </BackgroundWrapper>
   );
 }

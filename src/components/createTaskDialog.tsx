@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog } from "@headlessui/react";
+import { Sparkles } from "lucide-react";
 
 interface AddTaskModalProps {
   isOpen: boolean;
@@ -18,6 +19,15 @@ export default function AddTaskModal({
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Work");
   const [loading, setLoading] = useState(false);
+  const [highlightAI, setHighlightAI] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setHighlightAI(true);
+      const timer = setTimeout(() => setHighlightAI(false), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +69,7 @@ export default function AddTaskModal({
             Add New Task
           </Dialog.Title>
           <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-start relative">
               <input
                 type="text"
                 placeholder="Title"
@@ -68,16 +78,32 @@ export default function AddTaskModal({
                 required
                 className="flex-1 bg-[rgba(31,65,102,0.5)] p-2 rounded text-white placeholder-white/60"
               />
-              <button
-                type="button"
-                onClick={handleGenerateDescription}
-                disabled={loading || !title.trim()}
-                className="px-3 py-1 rounded bg-[#22c55e] hover:bg-[#16a34a] disabled:opacity-50"
-              >
-                {loading ? "..." : "✨"}
-              </button>
-            </div>
 
+              <div className="relative group">
+                <button
+                  type="button"
+                  onClick={handleGenerateDescription}
+                  disabled={loading || !title.trim()}
+                  className={`px-3 py-2 rounded bg-[#22c55e] hover:bg-[#16a34a] disabled:opacity-50 transition ${
+                    highlightAI ? "animate-bounce" : ""
+                  }`}
+                >
+                  {loading ? (
+                    "..."
+                  ) : (
+                    <Sparkles className="w-5 h-5 text-white" />
+                  )}
+                </button>
+
+                <span className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-1 text-xs rounded bg-gray-800 text-gray-200 opacity-0 group-hover:opacity-100 transition">
+                  Auto-generate description
+                </span>
+              </div>
+            </div>
+            <p className="text-xs text-gray-400">
+              💡 You can leave description empty and use{" "}
+              <span className="text-green-400">AI ✨</span> to generate one.
+            </p>
             <textarea
               rows={3}
               placeholder="Description"
@@ -95,6 +121,7 @@ export default function AddTaskModal({
               <option>Work</option>
               <option>Personal</option>
               <option>Urgent</option>
+              {/* <option>Other</option> */}
             </select>
 
             <div className="flex justify-end gap-2 mt-3">

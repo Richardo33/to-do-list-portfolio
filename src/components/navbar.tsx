@@ -6,6 +6,7 @@ import { Menu, Transition } from "@headlessui/react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Swal from "sweetalert2";
 
 export default function Navbar() {
   const router = useRouter();
@@ -29,16 +30,32 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push("/");
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You will be logged out from this session.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, logout",
+    });
+
+    if (result.isConfirmed) {
+      await supabase.auth.signOut();
+      Swal.fire({
+        icon: "success",
+        title: "Logged out",
+        text: "You have been logged out successfully.",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+      router.push("/");
+    }
   };
 
   return (
     <nav className="fixed top-0 left-0 z-40 flex items-center justify-between gap-4 bg-[#0E2A47] shadow-lg w-full h-[72px] px-10">
-      <div
-        className="flex items-center gap-2 min-w-[128px]"
-        // onClick={() => router.push("/tasks")}
-      >
+      <div className="flex items-center gap-2 min-w-[128px]">
         <Link
           href="/tasks"
           className="text-4 xl font-medium text-white cursor-pointer"
@@ -78,7 +95,6 @@ export default function Navbar() {
                   {({ active }) => (
                     <Link
                       href="/profile"
-                      // onClick={() => router.push("/profile")}
                       className={`${
                         active ? "bg-gray-100" : ""
                       } block w-full text-left px-4 py-2 text-sm`}

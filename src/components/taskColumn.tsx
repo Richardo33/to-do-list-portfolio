@@ -4,7 +4,14 @@ import { useState } from "react";
 import { Task } from "./taskBoard";
 import TaskCard from "./taskCard";
 import TaskDetailModal from "./detailList";
-import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
+import {
+  DndContext,
+  DragEndEvent,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -12,14 +19,6 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useDroppable } from "@dnd-kit/core";
-import { MoreVertical } from "lucide-react";
-
-interface TaskColumnsProps {
-  tasks: Task[];
-  filter: string;
-  onTaskStatusChange: (taskId: string, newStatus: Task["status"]) => void;
-  onDelete: (taskId: string) => void;
-}
 
 interface SortableTaskProps {
   task: Task;
@@ -36,20 +35,7 @@ function SortableTask({ task, onClick }: SortableTaskProps) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="relative">
-      {/* Drag handle: paku + tali */}
-      <div
-        className="flex items-center gap-2 mb-2 cursor-grab select-none"
-        {...listeners}
-        {...attributes}
-      >
-        {/* paku */}
-        <div className="w-3 h-3 rounded-full bg-gray-400 shadow-md"></div>
-        {/* tali */}
-        <div className="flex-1 h-0.5 bg-gray-400"></div>
-      </div>
-
-      {/* Card utama, klik untuk buka detail */}
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <TaskCard task={task} onClick={onClick} />
     </div>
   );
@@ -66,7 +52,7 @@ function DroppableColumn({
   return (
     <div
       ref={setNodeRef}
-      className="flex flex-col gap-4 bg-[rgba(0,0,0,0.16)] p-4 rounded-2xl min-h-[150px]"
+      className="flex flex-col gap-4 bg-[rgb(0_0_0_/16%)] backdrop-blur-2xl border border-white/10 p-4 rounded-2xl min-h-[150px] shadow-lg"
     >
       <h2 className="text-white font-bold mb-2">{status}</h2>
       {children}
@@ -79,9 +65,23 @@ export default function TaskColumns({
   filter,
   onTaskStatusChange,
   onDelete,
-}: TaskColumnsProps) {
+}: {
+  tasks: Task[];
+  filter: string;
+  onTaskStatusChange: (taskId: string, newStatus: Task["status"]) => void;
+  onDelete: (taskId: string) => void;
+}) {
   const statuses: Task["status"][] = ["To Do", "Doing", "Done"];
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5,
+      },
+    })
+  );
 
   const filteredTasks = (status: Task["status"]) =>
     tasks.filter(
@@ -111,8 +111,12 @@ export default function TaskColumns({
 
   return (
     <>
-      <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6  p-4 rounded-2xl">
           {statuses.map((status) => {
             const tasksForStatus = filteredTasks(status);
             return (

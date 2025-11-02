@@ -20,15 +20,21 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
   return (
     <div
       onClick={() => onClick(task)}
-      className="relative bg-[rgba(255,255,255,0.05)] rounded-2xl p-4 shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+      className="relative bg-[rgba(255,255,255,0.05)] rounded-2xl p-4 shadow-md hover:shadow-lg transition-shadow cursor-pointer flex flex-col"
     >
       <span
-        className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-full mb-2 ${tagClass}`}
+        className={`inline-block w-fit px-2 py-0.5 text-xs font-semibold rounded-full mb-2 ${tagClass}`}
       >
         {task.category}
       </span>
-      <h3 className="font-bold text-white text-lg mb-1">{task.title}</h3>
-      <p className="text-gray-200 text-sm line-clamp-2">{task.description}</p>
+
+      <h3 className="font-bold text-white text-lg truncate mb-2">
+        {task.title}
+      </h3>
+
+      <p className="text-gray-200 text-sm line-clamp-2 min-h-[2.5rem]">
+        {task.description}
+      </p>
     </div>
   );
 }
