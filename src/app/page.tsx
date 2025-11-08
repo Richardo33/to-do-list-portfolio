@@ -221,9 +221,9 @@ export default function LandingPage() {
             <Link href="/terms" className="hover:text-white">
               Terms
             </Link>
-            <a href="mailto:hello@richardoo.cyou" className="hover:text-white">
+            <Link href="/contact" className="hover:text-white">
               Contact
-            </a>
+            </Link>
           </div>
         </div>
         <div className="mx-auto max-w-6xl px-4 pb-8 text-xs text-white/50">
