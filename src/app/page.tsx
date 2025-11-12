@@ -1,18 +1,16 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "WGN — WorkGroup Navigation | To‑Do & Kanban",
+  title: "WGN — WorkGroup Navigation | To-Do & Kanban",
   description:
-    "WGN (WorkGroup Navigation): a lightweight to‑do & kanban app for Work, Personal, and Urgent tasks.",
+    "WGN (WorkGroup Navigation): a lightweight drag-and-drop to-do & kanban app for Work, Personal, and Urgent tasks.",
 };
 
 export default function LandingPage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#0e2b4c] text-white">
-      {/* Waves under everything, but still visible */}
       <BackgroundWaves />
 
-      {/* Top Nav */}
       <header className="sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-[#0e2b4c]/70">
         <div className="mx-auto max-w-6xl px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -49,7 +47,6 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Hero */}
       <section className="relative z-10 mx-auto max-w-6xl px-4 pt-14 md:pt-24">
         <div className="grid gap-10 md:grid-cols-2 md:items-center">
           <div className="space-y-6">
@@ -96,8 +93,11 @@ export default function LandingPage() {
           <div className="rounded-3xl border border-white/10 bg-white/5 shadow-2xl backdrop-blur p-5 md:p-6">
             <div className="flex items-center justify-between pb-3">
               <div className="font-semibold">Board Preview</div>
-              <div className="text-xs text-white/60">To‑Do / Doing / Done</div>
+              <div className="text-xs text-white/60">
+                To-Do / Doing / Done • Drag & drop
+              </div>
             </div>
+
             <div className="grid gap-4 md:grid-cols-3">
               <PreviewColumn title="To Do" accent="ring-emerald-300/40">
                 <PreviewCard
@@ -125,7 +125,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Features */}
       <section
         id="features"
         className="relative z-10 mx-auto max-w-6xl px-4 py-20"
@@ -148,7 +147,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How it works */}
       <section id="how" className="relative z-10 mx-auto max-w-6xl px-4 pb-20">
         <div className="rounded-3xl border border-white/10 bg-white/5 p-8 md:p-10 backdrop-blur">
           <h2 className="text-3xl md:text-4xl font-bold">How it works</h2>
@@ -183,7 +181,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Trust */}
       <section
         id="trust"
         className="relative z-10 mx-auto max-w-6xl px-4 pb-24"
@@ -204,7 +201,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="relative z-10 border-t border-white/10 bg-black/10">
         <div className="mx-auto max-w-6xl px-4 py-10 grid gap-6 md:grid-cols-2">
           <div className="space-y-2">
@@ -317,8 +313,8 @@ function BackgroundWaves() {
 
 const features = [
   {
-    title: "Three‑column Kanban",
-    desc: "To‑Do, Doing, Done — move tasks as you progress.",
+    title: "Three-column Kanban",
+    desc: "To-Do, Doing, Done — move tasks as you progress.",
     icon: (
       <svg
         width="28"
@@ -429,7 +425,7 @@ const features = [
   },
   {
     title: "Comfortable dark UI",
-    desc: "Consistent deep‑blue theme like your app.",
+    desc: "Consistent deep-blue theme like your app.",
     icon: (
       <svg
         width="28"
@@ -444,31 +440,6 @@ const features = [
           stroke="currentColor"
           strokeWidth="1.6"
         />
-      </svg>
-    ),
-  },
-  {
-    title: "Mobile‑ready",
-    desc: "Responsive from small to large screens.",
-    icon: (
-      <svg
-        width="28"
-        height="28"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="opacity-90"
-      >
-        <rect
-          x="7"
-          y="2"
-          width="10"
-          height="20"
-          rx="2"
-          stroke="currentColor"
-          strokeWidth="1.6"
-        />
-        <circle cx="12" cy="18" r="1" fill="currentColor" />
       </svg>
     ),
   },

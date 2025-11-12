@@ -10,6 +10,10 @@ interface AddTaskModalProps {
   onAddTask: (title: string, description: string, category: string) => void;
 }
 
+type GenDescOK = { description: string; source?: string };
+type GenDescErr = { error: string; details?: string };
+type GenDescResponse = GenDescOK | GenDescErr;
+
 export default function AddTaskModal({
   isOpen,
   onClose,
@@ -37,7 +41,7 @@ export default function AddTaskModal({
     setCategory("Work");
   };
 
-  const handleGenerateDescription = async () => {
+  const handleGenerateDescription = async (): Promise<void> => {
     if (!title.trim()) return;
     setLoading(true);
     try {
@@ -46,12 +50,19 @@ export default function AddTaskModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title }),
       });
-      const data = await res.json();
-      if (data.description) {
+
+      const data = (await res.json()) as GenDescResponse;
+
+      if (!res.ok) {
+        throw new Error("error" in data ? data.error : "Gagal generate");
+      }
+
+      if ("description" in data && typeof data.description === "string") {
         setDescription(data.description);
       }
     } catch (err) {
-      console.error("Error:", err);
+      // biarkan TypeScript infer catch var sebagai unknown (aman dari lint)
+      console.error("generate-description:", err);
     } finally {
       setLoading(false);
     }
