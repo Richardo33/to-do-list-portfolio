@@ -33,10 +33,13 @@ export default function TaskDetailModal({
         </DialogHeader>
 
         <div className="mt-4 space-y-2">
-          <p>
-            <span className="font-semibold">Deskripsi: </span>
-            {task.description}
-          </p>
+          <div>
+            <div className="font-semibold">Deskripsi:</div>
+            <p className="mt-1 whitespace-pre-wrap break-words text-white/90">
+              {task.description}
+            </p>
+          </div>
+
           <p>
             <span className="font-semibold">Kategori: </span>
             {task.category}

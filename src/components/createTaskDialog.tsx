@@ -61,7 +61,6 @@ export default function AddTaskModal({
         setDescription(data.description);
       }
     } catch (err) {
-      // biarkan TypeScript infer catch var sebagai unknown (aman dari lint)
       console.error("generate-description:", err);
     } finally {
       setLoading(false);
