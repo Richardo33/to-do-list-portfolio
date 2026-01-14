@@ -1,22 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Task } from "./taskBoard";
 import TaskCard from "./taskCard";
 import TaskDetailModal from "./detailList";
 import {
   DndContext,
   DragEndEvent,
-  closestCenter,
   PointerSensor,
   useSensor,
   useSensors,
+  pointerWithin,
+  rectIntersection,
+  closestCenter,
+  type CollisionDetection,
 } from "@dnd-kit/core";
 import {
   SortableContext,
   verticalListSortingStrategy,
-  useSortable,
 } from "@dnd-kit/sortable";
+import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useDroppable } from "@dnd-kit/core";
 
@@ -27,11 +30,15 @@ interface SortableTaskProps {
 
 function SortableTask({ task, onClick }: SortableTaskProps) {
   const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: task.id });
+    useSortable({
+      id: task.id,
+      data: { type: "task", status: task.status },
+    });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
+    touchAction: "none",
   };
 
   return (
@@ -48,14 +55,22 @@ function DroppableColumn({
   status: Task["status"];
   children: React.ReactNode;
 }) {
-  const { setNodeRef } = useDroppable({ id: status });
+  const { setNodeRef, isOver } = useDroppable({
+    id: status,
+    data: { type: "column", status },
+  });
+
   return (
     <div
       ref={setNodeRef}
-      className="flex flex-col gap-4 bg-[rgb(0_0_0_/16%)] backdrop-blur-2xl border border-white/10 p-4 rounded-2xl min-h-[150px] shadow-lg"
+      className={`flex flex-col gap-4 bg-[rgb(0_0_0_/16%)] backdrop-blur-2xl border border-white/10 p-4 rounded-2xl min-h-[220px] shadow-lg transition ${
+        isOver ? "ring-2 ring-white/40" : ""
+      }`}
     >
-      <h2 className="text-white font-bold mb-2">{status}</h2>
-      {children}
+      <h2 className="text-white font-bold mb-1">{status}</h2>
+
+      {/* area drop yang luas dan konsisten */}
+      <div className="flex flex-col gap-4 flex-1 min-h-[140px]">{children}</div>
     </div>
   );
 }
@@ -71,17 +86,32 @@ export default function TaskColumns({
   onTaskStatusChange: (taskId: string, newStatus: Task["status"]) => void;
   onDelete: (taskId: string) => void;
 }) {
-  const statuses: Task["status"][] = ["To Do", "Doing", "Done"];
+  const statuses: Task["status"][] = useMemo(
+    () => ["To Do", "Doing", "Done"],
+    []
+  );
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
+  // sensor: pakai distance biar drag lebih responsif (tidak “nahan”)
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        delay: 200,
-        tolerance: 5,
+        distance: 8,
       },
     })
   );
+
+  // collision strategy kanban-friendly:
+  // pointerWithin -> rectIntersection -> fallback closestCenter
+  const collisionDetectionStrategy: CollisionDetection = (args) => {
+    const pointerHits = pointerWithin(args);
+    if (pointerHits.length) return pointerHits;
+
+    const rectHits = rectIntersection(args);
+    if (rectHits.length) return rectHits;
+
+    return closestCenter(args);
+  };
 
   const filteredTasks = (status: Task["status"]) =>
     tasks.filter(
@@ -90,18 +120,24 @@ export default function TaskColumns({
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (!over || active.id === over.id) return;
+    if (!over) return;
+    if (active.id === over.id) return;
 
-    const draggedTask = tasks.find((t) => t.id === active.id);
+    const activeId = String(active.id);
+    const overId = String(over.id);
+
+    const draggedTask = tasks.find((t) => t.id === activeId);
     if (!draggedTask) return;
 
     let newStatus: Task["status"] | null = null;
-    const overTask = tasks.find((t) => t.id === over.id);
 
+    // kalau drop di atas task lain
+    const overTask = tasks.find((t) => t.id === overId);
     if (overTask) {
       newStatus = overTask.status;
-    } else if (statuses.includes(over.id as Task["status"])) {
-      newStatus = over.id as Task["status"];
+    } else if (statuses.includes(overId as Task["status"])) {
+      // kalau drop di kolom kosong / area kolom
+      newStatus = overId as Task["status"];
     }
 
     if (newStatus && draggedTask.status !== newStatus) {
@@ -113,12 +149,13 @@ export default function TaskColumns({
     <>
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={collisionDetectionStrategy}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6  p-4 rounded-2xl">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4 rounded-2xl">
           {statuses.map((status) => {
             const tasksForStatus = filteredTasks(status);
+
             return (
               <DroppableColumn key={status} status={status}>
                 <SortableContext

@@ -20,6 +20,7 @@ export interface List {
   id: string;
   title: string;
   position: number;
+  board_id?: string;
 }
 
 export default function TaskBoard() {
@@ -38,10 +39,12 @@ export default function TaskBoard() {
 
       setUserId(userData.user.id);
 
+      // 1) get/create board
       const { data: boards, error: boardError } = await supabase
         .from("boards")
         .select("*")
         .eq("owner_id", userData.user.id);
+
       if (boardError) return;
 
       let bId = boards && boards.length > 0 ? boards[0].id : null;
@@ -57,33 +60,45 @@ export default function TaskBoard() {
       if (!bId) return;
       setBoardId(bId);
 
+      // 2) get/create lists
       const { data: existingLists } = await supabase
         .from("lists")
         .select("*")
         .eq("board_id", bId)
         .order("position", { ascending: true });
 
-      if (!existingLists || existingLists.length === 0) {
+      let finalLists: List[] = existingLists || [];
+
+      if (!finalLists || finalLists.length === 0) {
         const defaultLists = [
           { board_id: bId, title: "To Do", position: 1 },
           { board_id: bId, title: "Doing", position: 2 },
           { board_id: bId, title: "Done", position: 3 },
         ];
+
         const { data: newLists } = await supabase
           .from("lists")
           .insert(defaultLists)
           .select();
-        setLists(newLists || []);
-      } else {
-        setLists(existingLists);
+
+        finalLists = newLists || [];
       }
 
-      const listIds = (existingLists || []).map((l) => l.id);
+      setLists(finalLists);
+
+      // 3) fetch tasks by list ids (gunakan finalLists, bukan existingLists)
+      const listIds = finalLists.map((l) => l.id);
+      if (listIds.length === 0) {
+        setTasks([]);
+        return;
+      }
+
       const { data: taskData } = await supabase
         .from("tasks")
         .select("*")
         .in("list_id", listIds)
         .order("created_at", { ascending: true });
+
       setTasks(taskData || []);
     };
 
@@ -113,6 +128,7 @@ export default function TaskBoard() {
       ])
       .select()
       .single();
+
     if (data) setTasks((prev) => [...prev, data]);
     setIsModalOpen(false);
   };
@@ -121,21 +137,35 @@ export default function TaskBoard() {
     taskId: string,
     newStatus: Task["status"]
   ) => {
+    // update list_id juga biar konsisten
+    const targetList = lists.find((l) => l.title === newStatus);
+
+    const updatePayload: Partial<Task> = { status: newStatus };
+    if (targetList) updatePayload.list_id = targetList.id;
+
     const { data } = await supabase
       .from("tasks")
-      .update({ status: newStatus })
+      .update(updatePayload)
       .eq("id", taskId)
       .select()
       .single();
+
     if (data) {
       setTasks((prev) =>
-        prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
+        prev.map((t) =>
+          t.id === taskId
+            ? {
+                ...t,
+                status: newStatus,
+                list_id: targetList?.id ?? t.list_id,
+              }
+            : t
+        )
       );
     }
   };
 
   const handleDeleteTask = async (taskId: string) => {
-    // console.log("Deleting task:", taskId);
     const { error } = await supabase.from("tasks").delete().eq("id", taskId);
     if (error) {
       console.error("Delete failed:", error);
