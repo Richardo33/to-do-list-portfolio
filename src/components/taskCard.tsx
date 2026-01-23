@@ -32,7 +32,8 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
         {task.title}
       </h3>
 
-      <p className="text-gray-200 text-sm line-clamp-2 min-h-[2.5rem]">
+      {/* ✅ Fix: preserve newline */}
+      <p className="text-gray-200 text-sm whitespace-pre-line line-clamp-3 min-h-[2.5rem]">
         {task.description}
       </p>
     </div>

@@ -92,7 +92,6 @@ export default function TaskColumns({
   );
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
-  // sensor: pakai distance biar drag lebih responsif (tidak “nahan”)
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -101,8 +100,6 @@ export default function TaskColumns({
     })
   );
 
-  // collision strategy kanban-friendly:
-  // pointerWithin -> rectIntersection -> fallback closestCenter
   const collisionDetectionStrategy: CollisionDetection = (args) => {
     const pointerHits = pointerWithin(args);
     if (pointerHits.length) return pointerHits;
